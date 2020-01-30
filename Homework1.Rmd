@@ -5,26 +5,31 @@ date: "1/29/2020"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+library(tidyverse)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+1. Consider observing n = 10 pairs of points where no clear predictor/response
+relationship is obvious. Supposing that the relationship between the two variables appears to be linear, find the range of r (correlation coefficient) for which
+the null hypothesis H0 : ρ = 0 will not be rejected at α = .05. (Refer to the
+t-test given at the end of lecture notes 2). (If you want to get quantiles from
+a t-distribution in R, you can use qt(quantile,df ) where quantile is a number
+between 0 and 1 and df is the degrees of freedom.)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+6.  Using the data set mtcars (data(mtcars)) in R, find a transformation of the
+variables mpg (fuel efficiency) and disp (engine size) that allows for reasonable
+application of our linear model.
 
-```{r cars}
-summary(cars)
+```{r}
+data(mtcars)
+
+#diagnostic plot
+mtcars %>% select(mpg, disp) %>% ggplot()+geom_point(aes(x=mpg, y=disp))+ggtitle("Untransformed mpg vs disp from mtcars")
+
+#try a log transform on disp variable
+mtcars %>% select(mpg, disp) %>% ggplot()+geom_point(aes(x=mpg, y=log(disp)))+ggtitle("mpg vs Log transformed disp from mtcars")
+
+#The data looks quite a bit more linear now... this is more reasonable for applying our linear model
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
