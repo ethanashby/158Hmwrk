@@ -17,6 +17,14 @@ t-test given at the end of lecture notes 2). (If you want to get quantiles from
 a t-distribution in R, you can use qt(quantile,df ) where quantile is a number
 between 0 and 1 and df is the degrees of freedom.)
 
+```{r}
+#find quantiles for df=8 where we reject the null hypothesis @ alpha-0.05. Remember two-tailed
+qt(0.025, 8)
+qt(0.975,8)
+
+```
+
+
 6.  Using the data set mtcars (data(mtcars)) in R, find a transformation of the
 variables mpg (fuel efficiency) and disp (engine size) that allows for reasonable
 application of our linear model.
