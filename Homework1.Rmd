@@ -12,7 +12,7 @@ library(tidyverse)
 
 1. Consider observing n = 10 pairs of points where no clear predictor/response
 relationship is obvious. Supposing that the relationship between the two variables appears to be linear, find the range of r (correlation coefficient) for which
-the null hypothesis H0 : ρ = 0 will not be rejected at α = .05. (Refer to the
+the null hypothesis H0 : corr = 0 will not be rejected at alpha = .05. (Refer to the
 t-test given at the end of lecture notes 2). (If you want to get quantiles from
 a t-distribution in R, you can use qt(quantile,df ) where quantile is a number
 between 0 and 1 and df is the degrees of freedom.)

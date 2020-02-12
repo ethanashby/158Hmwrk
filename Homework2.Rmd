@@ -1,0 +1,97 @@
+---
+title: "Homework2"
+author: "Ethan Ashby"
+date: "2/10/2020"
+output: pdf_document
+---
+
+```{r Packages, message=FALSE, echo=FALSE}
+library(mosaic)
+library(tidyverse)
+```
+1. Explore lab 1 data
+
+(a) Write down model that you think works.
+```{r}
+labdata<-read.csv("Lab1data.txt")
+summary(labdata)
+
+labdata$sj <- with(labdata, sqrt(Jobs))
+xyplot(Time~sj, data=labdata, type=c('r', 'p'))
+#the sqrt transformation on 'Jobs' improves the linear fit! I feel comfortable applying the model here
+```
+
+```{r}
+#sqrt transform jobs data
+labdata$sj <- with(labdata, sqrt(Jobs))
+
+#fit lm to this data, with y intercept set to 0, since 0 jobs should take 0 minutes
+fit<-lm(Time~0+sj, labdata)
+
+summary(fit)
+```
+
+\begin{equation}
+time=3.979*\sqrt{jobs}
+\end{equation}
+
+```{r}
+#Time required to do 10 jobs given our model
+predict(fit, data.frame(sj=sqrt(10)))
+```
+
+(c) In the context of this data, make sense of the form the regression relationship might take. In particular, discuss why we might see a linear relationship, a convex relationship, or the concave relationship seen in the actual data. Keep this specific to the variables we are studying.
+
+```{r}
+#relationship in the actual data
+xyplot(Time~Jobs, labdata)
+```
+
+We might anticipate seeing a concave relationship (which we do see in the data) because a small number of jobs requires a mininum amount of time to complete. However, when posed with a large number of jobs, the process becomes more efficient and it takes less time to complete each job, resulting in a tapering off of the data at higher number of jobs. This accounts for the concavity of the data.
+
+If the relationship is convex, then as the number of jobs increases, the process becomes less efficient and the time/job increases. So at a high number of jobs, the time required to complete explodes.
+
+If the relationship is linear, then as the time/job is constant regardless of how many jobs we have.
+
+2. Based on the work we did understanding the forms of the variances of the of the regression coefficients, discuss (confidence) interval estimation for a quantity like the one in 1(b). Should the size of the interval be a function of $x^*$? If so, how and why? Where do you think the smallest interval would be for a fixed confidence level?
+
+```{r}
+#use predict.lm with argument 'interval="confidence"' to generate confidence interval for mean time at 10 jobs
+summary(fit)
+
+#Time to complete 10 jobs
+predict.lm(fit, data.frame(sj=sqrt(10)), interval="confidence") 
+
+#Time to complete 100000 jobs
+predict.lm(fit, data.frame(sj=sqrt(100000)), interval="confidence") 
+```
+
+As evidenced by comparing confidence interval predictions for 10 and 100,000 jobs, the larger number of jobs results in a wider interval. So the size of the interval increases as the number of jobs increases (interval width is a function of x*).
+I would anticipate the smallest interval for a fixed confidence level would be the origin.
+
+3. Show that the regression line necessarily passes through the point $(\bar{x},\bar{y})$.
+
+We know that this is true because least squares regression defines $$\hat{\beta_0}=\bar{y}-\hat{\beta_1}\bar{x}$$. A rearrangement of this expression shows that $$\hat{\beta_0}+\hat{\beta_1}\bar{x}=\bar{y}$$, which demonstrates that $(\bar{x},\bar{y})$ satisfy the equation of the line of best fit. Thus the line must pass through this point.
+
+4. Consider a situation where the x variables are measured with error, so that rather than observing (xi, yi) we observe $(x_i + \eta_i, y_i)$ where the $y_i$ are the responses at the actual $x_i$ that we don’t get to see and $\eta_i$ is some mean 0 random variable (similar to $\epsilon_i$). The consequence of this is that the least squares estimate of the slope will be biased. Using intuition, argue which direction the bias will be (negative bias: $\hat{\beta}_1$ will tend to be too small, vs positive bias).
+
+Recall that $$\hat{\beta}_1=\frac{\sum{(x_i-\bar{x})(y_i)}}{\sum{(x_i-\bar{x})^2}}$$
+
+Jittering the x values slightly in your measurement will not change the value of $\bar{x}$, since the $\eta_i$ is normally distributed with mean=0. So some $x_i$ will be positively perturbed, and some will be negatively perturbed, so the $\bar{x}$ will remain the same. Jittering the x values also won't change the value of $\sum{(x_i-\bar{x})(y_i)}$, since $\sum{((x_i+\eta_i)-\bar{x})(y_i)}=\sum{(x_i-\bar{x})(y_i)}+\sum{(\eta_i)(y_i)}$ and $\sum{(\eta_i)(y_i)}=0$ because the jitter is independent of the value of the response variable. $\sum{((x_i+\eta_i)-\bar{x})(y_i)}=\sum{(x_i-\bar{x})(y_i)}$, so the jitter has no effect on the numerator of the $\hat{\beta}_1$ expression.
+
+However, the denominator of the expression for $\hat{\beta}_1$ will increase.
+Compare the unperturbed sum ($\sum(x_i-\bar{x})^2$) and the perturbed sum ($\sum((x_i+\eta_i)-\bar{x})^2$).
+$\sum(x_i-\bar{x})^2=\sum({x_i}^2-2\bar{x}x_i+\bar{x}^2)$ and $\sum((x_i+\eta_i)-\bar{x})^2=\sum {x_i}^2-2x_i\bar{x}+2x_in_i+\bar{x}^2-2\bar{x}n_i+{n_i}^2$.
+These expressions have a lot of shared terms. To determine which is larger, we can cancel many of these shared terms (${x_i}^2$, $2x_i\bar{x}$, and $\bar{x}^2$). Then the perturbed equation remains as $\sum 2x_i\eta_i-2\bar{x}\eta_i+\eta_i^2$.
+Note that $\sum 2x_i\eta_i-2\bar{x}\eta_i=0$ because $\sum x_i-\bar{x}=0$. So this will simplify to $\sum \eta_i^2$ which is necessarily greater than 0.
+So $\sum(x_i-\bar{x})^2 < \sum((x_i+\eta_i)-\bar{x})^2$.
+So the numerator is unchanged by the jittering, but the denominator is larger. So the expression for $\hat{\beta}_1$ will have an unchanged numerator and a larger denominator, resulting in an underestimation of $\hat{\beta}_1$, or a negative bias.
+
+
+
+
+
+
+
+
+
