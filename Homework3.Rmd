@@ -1,0 +1,88 @@
+---
+title: "Homework3"
+author: "Ethan Ashby"
+date: "2/19/2020"
+output: html_document
+---
+
+```{r, echo=FALSE}
+library(mosaic)
+library(infer)
+library(tidyverse)
+library(MASS)
+
+#run f test for linearity
+formal.test.linearity <- function(x,y,digits) {
+  # Conducts a formal test of linearity by `binning' x values to produce psuedo-replications
+  #
+  # Args: 
+  #  x: predictor variable
+  #  y: repsons variable
+  #  digits: number of digits used in the rounding - for instance digits=1 takes 47 to 50 
+  # Returns:
+  #  ANOVA table (SSs, dfs, F-statistic, p-value) for model comparison
+  x.round <- round(x,digits=-digits)
+  if (length(unique(x.round))==length(x))
+    stop('rounding not sufficient to produce repeated values of x')
+  fit1 <- lm(y ~ x.round)
+  fit2 <- lm(y~as.factor(x.round))
+  return(anova(fit1,fit2))
+}
+```
+
+```{r, echo=FALSE}
+data<-read.csv("Hw3_data.csv", header=FALSE)
+```
+
+We begin by fitting a model to predict number of physicians using the estimated population. We get a model and a line. Can we do better?
+```{r, cache=TRUE}
+#Fit a linear model that predicts number of active physicians (V4) using estimated population (V8)
+fit<-lm(V8~V4, data=data)
+xyplot(V8~V4, data=data, type=c("r", "p"))
+#can we do better?
+```
+
+We use the box-cox procedure to inform possible data transformations. The log-likelihood is maximized at around $\lambda$=0, which suggests a log transformation of the y variable (number of physicians). But we'd rather transform the x variable (population), so we cheat the procedure by building a model that predicts *population using physicians*. Running box-cox on this model also suggests a log transformation, this time of the response variable which is population. So we build our improved model using a log(estimated population). 
+```{r, cache=TRUE}
+#use box cox method to inform data transformation
+boxcox(fit)
+#lambda approximately = 0, indicating we need a log transform for the y variable
+
+#refit, we want to transform our explanatory variable x, so we're going to flip explanatory predictor relationship
+fit_1<-lm(V4~V8, data=data)
+#suggests a log transform of x
+boxcox(fit_1)
+
+#build model predicting number of physicians using log(pop)
+new_fit<-lm(V8~log(V4), data=data)
+xyplot(V8~log(V4), data=data, type=c("r", "p"))
+
+summary(new_fit)
+```
+
+```{r}
+#diagnostic plots
+plot(new_fit)
+```
+
+Our diagnostic plots spell good news for our updated model. The residuals vs fitted plot shows that the residuals show no trend with the fitted values, indicating constant variance and linearity are upheld in our model. Our Q-Q plot shows that despite a few outliers, that the majority of the residuals are normally distributed, which supports another of our important regression hypotheses. The scale location plot shows the standardized residuals are spread evenly above and below the line, supporting homoskedasticity. Our residuals vs leverage plot shows that (1), (2), (3) may be influential points that could be messing up our regression, so we should consider excluding these points.
+
+
+```{r}
+#run F test on our transformed data, rounded to tens digit
+formal.test.linearity(x=log(data$V4), y=data$V8, digits=0)
+```
+
+Our test for linearity however, generates a p-value<2.2e-16, so we reject the null hypothesis of linearity.
+
+
+
+```{r}
+new_data<-data[-c(1,2,3),]
+newer_fit<-lm(V8~log(V4), data=new_data)
+summary(newer_fit)
+xyplot(V8~log(V4), data=new_data, type=c("r", "p"))
+plot(newer_fit)
+formal.test.linearity(x=log(new_data$V4), y=new_data$V8, digits=0)
+```
+
